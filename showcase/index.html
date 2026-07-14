@@ -37,7 +37,7 @@
   .gold{color:var(--gold)}
 
   /* ---------- stage ---------- */
-  #bg{position:fixed;inset:0;z-index:0;opacity:.65;pointer-events:none}
+  #bg{position:fixed;inset:0;z-index:0;opacity:.9;pointer-events:none}
   #webcv{position:fixed;inset:0;z-index:2}
   .vframe{position:fixed;inset:12px;z-index:40;pointer-events:none;border:1px solid rgba(240,185,11,.12)}
   .vframe::before,.vframe::after{content:"";position:absolute;width:22px;height:22px;border-color:rgba(240,185,11,.45);border-style:solid}
@@ -540,7 +540,7 @@ function rs(){ W=innerWidth;H=innerHeight; cv.width=W*DPR;cv.height=H*DPR;
 rs(); addEventListener("resize",rs);
 const NC=innerWidth<700?70:150, N=[];
 for(let i=0;i<NC;i++)N.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
-  vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:.8+Math.random()*1.3});
+  vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:1.1+Math.random()*1.7});
 /* click pulses: dots GATHER to the point, then SCATTER apart */
 const pulses=[];
 addEventListener("click",e=>{ if(!openId&&pulses.length<3)pulses.push({x:e.clientX,y:e.clientY,t0:performance.now()}); },{passive:true});
@@ -570,10 +570,10 @@ function drawPlexus(now){
   }
   for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++){
     const dx=N[i].x-N[j].x,dy=N[i].y-N[j].y,d=Math.hypot(dx,dy);
-    if(d<130){ ctx.strokeStyle="rgba(240,185,11,"+(.11*(1-d/130))+")"; ctx.lineWidth=1;
+    if(d<130){ ctx.strokeStyle="rgba(240,185,11,"+(.17*(1-d/130))+")"; ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(N[i].x,N[i].y);ctx.lineTo(N[j].x,N[j].y);ctx.stroke(); }
   }
-  for(const p of N){ ctx.fillStyle="rgba(252,213,53,.42)"; ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill(); }
+  for(const p of N){ ctx.fillStyle="rgba(252,213,53,.65)"; ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill(); }
   for(let i=pulses.length-1;i>=0;i--){
     const w=pulses[i],age=now-w.t0;
     if(age>SCATTER){pulses.splice(i,1);continue;}
