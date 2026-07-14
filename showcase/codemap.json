@@ -1,0 +1,68 @@
+{
+ "groups": [
+  {
+   "name": "app/agent",
+   "files": [
+    "README.md",
+    "__init__.py",
+    "agent_card.py",
+    "executor.py",
+    "main.py",
+    "managed_model.py",
+    "mefai_signals.py",
+    "pyproject.toml",
+    "seller_core.py",
+    "signing.py",
+    "studio.toml",
+    "tools.py"
+   ]
+  },
+  {
+   "name": "root",
+   "files": [
+    "LICENSE",
+    "README.md",
+    "pyproject.toml"
+   ]
+  },
+  {
+   "name": "showcase",
+   "files": [
+    "build_codemap.py",
+    "index.html",
+    "mefailogo.png",
+    "update_feed.py"
+   ]
+  }
+ ],
+ "imports": [
+  [
+   "app/agent/executor.py",
+   "app/agent/seller_core.py"
+  ],
+  [
+   "app/agent/main.py",
+   "app/agent/agent_card.py"
+  ],
+  [
+   "app/agent/main.py",
+   "app/agent/executor.py"
+  ],
+  [
+   "app/agent/main.py",
+   "app/agent/managed_model.py"
+  ],
+  [
+   "app/agent/main.py",
+   "app/agent/tools.py"
+  ],
+  [
+   "app/agent/seller_core.py",
+   "app/agent/signing.py"
+  ],
+  [
+   "app/agent/tools.py",
+   "app/agent/mefai_signals.py"
+  ]
+ ]
+}

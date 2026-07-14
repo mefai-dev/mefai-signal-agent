@@ -129,6 +129,17 @@
   .stat .n{font-size:36px;font-weight:700;color:var(--txt);line-height:1.1;font-family:var(--mono)}
   .stat .n.gold{color:var(--gold)}
   .stat .k{font-size:11px;color:var(--mut);margin-top:8px;letter-spacing:.18em;text-transform:uppercase}
+  /* ---------- code web ---------- */
+  .webwrap{position:relative;height:92vh;min-height:560px;overflow:hidden;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:radial-gradient(ellipse at 50% 50%,#12151c 0%,var(--bg) 72%)}
+  #webcv{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+  .webhud{position:absolute;top:22px;left:26px;z-index:3;pointer-events:none;
+    font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+  .webhud em{display:block;font-style:normal;color:var(--mut);margin-top:6px;letter-spacing:.12em}
+  .webhint{position:absolute;bottom:20px;right:26px;z-index:3;pointer-events:none;
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+
   /* ---------- section shell ---------- */
   section{padding:96px 0;position:relative}
   .eyebrow{display:flex;align-items:center;justify-content:center;gap:14px;
@@ -345,6 +356,7 @@
     <a class="brand" href="#top"><span class="logo"><img class="logoimg" src="mefailogo.png" alt="MEFAI" width="40" height="40"></span>
       <span class="t">MEFAI<small>Signal Agent</small></span></a>
     <nav class="links">
+      <a href="#web">Code Web</a>
       <a href="#identity">Identity</a>
       <a href="#how">Protocol</a>
       <a href="#live">Live Signals</a>
@@ -375,10 +387,17 @@
   </div>
 </div>
 
+<!-- CODE WEB -->
+<section id="web" style="padding:0"><div class="webwrap">
+  <canvas id="webcv"></canvas>
+  <div class="webhud">The Code Web<em id="webfocus">the agent, mapped file by file</em></div>
+  <div class="webhint">click a cluster · click again to pull back</div>
+</div></section>
+
 <!-- IDENTITY -->
 <section id="identity"><div class="wrap">
   <div class="center">
-    <div class="eyebrow reveal"><b>01</b> On-Chain Identity</div>
+    <div class="eyebrow reveal"><b>02</b> On-Chain Identity</div>
     <div class="h2 reveal d1">One agent. One key. One signer.</div>
     <p class="lead reveal d2">The agent holds its own wallet and is the sole signer of every quote, delivery
       and settlement. Its identity is registered under ERC-8004, discoverable and verifiable by anyone
@@ -409,7 +428,7 @@
 <!-- HOW -->
 <section id="how"><div class="wrap">
   <div class="center">
-    <div class="eyebrow reveal"><b>02</b> The Protocol</div>
+    <div class="eyebrow reveal"><b>03</b> The Protocol</div>
     <div class="h2 reveal d1">Funded first. Then delivered.<br>Always verifiable.</div>
     <p class="lead reveal d2">Every job runs the same ERC-8183 lifecycle. The agent never prices with the LLM
       and never signs from a tool. Pricing is fixed, signing is deterministic code.</p>
@@ -435,7 +454,7 @@
 <section id="live"><div class="wrap">
   <div class="liveHead">
     <div>
-      <div class="eyebrow reveal"><b>03</b> Real MEFAI Feed</div>
+      <div class="eyebrow reveal"><b>04</b> Real MEFAI Feed</div>
       <div class="h2 reveal d1">Live signals the agent delivers</div>
     </div>
     <div class="liveTag reveal d2">Streaming from MEFAI · <em id="upd">updating</em></div>
@@ -447,7 +466,7 @@
 <!-- DELIVERABLE -->
 <section id="deliverable"><div class="wrap">
   <div class="center">
-    <div class="eyebrow reveal"><b>04</b> A Real Job Output</div>
+    <div class="eyebrow reveal"><b>05</b> A Real Job Output</div>
     <div class="h2 reveal d1">What a buyer receives</div>
     <p class="lead reveal d2">An actual deliverable produced by the agent's BNB-native LLM from live MEFAI
       signals. No template, no hand-editing.</p>
@@ -486,7 +505,7 @@
 <!-- STACK -->
 <section id="stack"><div class="wrap">
   <div class="center">
-    <div class="eyebrow reveal"><b>05</b> Built Entirely on BNB Chain Rails</div>
+    <div class="eyebrow reveal"><b>06</b> Built Entirely on BNB Chain Rails</div>
     <div class="h2 reveal d1">The stack</div>
   </div>
   <div class="stack reveal d2">
@@ -506,7 +525,7 @@
 <!-- OPEN SOURCE -->
 <section id="opensource"><div class="wrap">
   <div class="os reveal"><div class="in"><div class="in2">
-    <div class="eyebrow"><b>06</b> Open Source</div>
+    <div class="eyebrow"><b>07</b> Open Source</div>
     <div class="h2">Fork it. Run your own signal agent.</div>
     <div class="rule"><em>MIT</em><i></i><em>LICENSED</em></div>
     <p class="lead" style="margin-top:22px">The full agent, its identity, jobs, x402 flow, the MEFAI signal tools and the
@@ -773,60 +792,290 @@ function drawWeb(){
   }
 }
 
-/* 3D double helix, fades out as you scroll past the hero */
-const HSTEPS=44;
-function drawHelix(t){
-  const fade=Math.max(0,1-(scrollY/(H*.85)));
-  if(fade<=0)return;
-  const cx=W*.5, top=H*.1, bot=H*.9, amp=Math.min(W*.3,300);
-  const rot=t*.00045;
-  const pts=[[],[]];
-  for(let i=0;i<=HSTEPS;i++){
-    const y=top+(bot-top)*i/HSTEPS;
-    const ph=i*.36+rot;
-    for(let s=0;s<2;s++){
-      const a=ph+s*Math.PI;
-      const z=Math.cos(a);                       /* -1 back, 1 front */
-      pts[s].push({x:cx+Math.sin(a)*amp, y, z});
-    }
-  }
-  /* rungs */
-  for(let i=0;i<=HSTEPS;i+=3){
-    const p1=pts[0][i], p2=pts[1][i];
-    const zavg=(p1.z+p2.z)/2;
-    ctx.strokeStyle="rgba(240,185,11,"+((.1+.14*(zavg+1)/2)*fade)+")";
-    ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-  }
-  /* strands */
-  for(let s=0;s<2;s++){
-    for(let i=0;i<HSTEPS;i++){
-      const a=pts[s][i], b=pts[s][i+1];
-      const zd=(a.z+1)/2;
-      ctx.strokeStyle="rgba(252,213,53,"+((.1+.3*zd)*fade)+")";
-      ctx.lineWidth=.8+zd*1.2;
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-    for(let i=0;i<=HSTEPS;i++){
-      const p=pts[s][i], zd=(p.z+1)/2;
-      ctx.fillStyle="rgba(252,213,53,"+((.25+.55*zd)*fade)+")";
-      ctx.beginPath();ctx.arc(p.x,p.y,1+zd*2.4,0,7);ctx.fill();
-      if(zd>.86){
-        const rg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,9);
-        rg.addColorStop(0,"rgba(252,213,53,"+(.3*fade)+")"); rg.addColorStop(1,"rgba(252,213,53,0)");
-        ctx.fillStyle=rg; ctx.beginPath();ctx.arc(p.x,p.y,9,0,7);ctx.fill();
-      }
-    }
-  }
-}
-
 function loop(t){
   ctx.clearRect(0,0,W,H);
-  drawHelix(t||0);
   drawWeb();
   requestAnimationFrame(loop);
 }
 if(!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(loop);
+
+/* ==== THE CODE WEB: the repository rendered as a living orb web ==== */
+(function(){
+  const cv=document.getElementById("webcv"); if(!cv)return;
+  const g2=cv.getContext("2d");
+  const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const DPR2=Math.min(2,devicePixelRatio||1);
+  const LOGO=new Image(); LOGO.src="mefailogo.png";
+
+  /* graph data: generated by showcase/build_codemap.py (the repo indexer).
+     The page also tries to fetch a fresh codemap.json at runtime. */
+  const CODEMAP={"groups":[
+    {"name":"app/agent","files":["README.md","__init__.py","agent_card.py","executor.py","main.py","managed_model.py","mefai_signals.py","pyproject.toml","seller_core.py","signing.py","studio.toml","tools.py"]},
+    {"name":"root","files":["LICENSE","README.md","pyproject.toml"]},
+    {"name":"showcase","files":["build_codemap.py","index.html","mefailogo.png","update_feed.py"]}],
+   "imports":[
+    ["app/agent/executor.py","app/agent/seller_core.py"],
+    ["app/agent/main.py","app/agent/agent_card.py"],
+    ["app/agent/main.py","app/agent/executor.py"],
+    ["app/agent/main.py","app/agent/managed_model.py"],
+    ["app/agent/main.py","app/agent/tools.py"],
+    ["app/agent/seller_core.py","app/agent/signing.py"],
+    ["app/agent/tools.py","app/agent/mefai_signals.py"]]};
+  const EXT=[["BNB Chain","app/agent/signing.py"],["ERC-8004","app/agent/agent_card.py"],
+    ["ERC-8183","app/agent/seller_core.py"],["x402","app/agent/managed_model.py"],
+    ["Pieverse LLM","app/agent/managed_model.py"],["MEFAI Feed","app/agent/mefai_signals.py"]];
+  const EXTRA=[["showcase/update_feed.py","showcase/index.html"],
+    ["showcase/build_codemap.py","showcase/index.html"]];
+
+  const R_HUB=150,R_FILE=290,R_RIM=400,R_EXT=485,FOCUS_GROW=1.22;
+  const RINGS=[70,120,170,220,270,325,400];
+  let CW=0,CH=0,FIT=1;
+  let nodes=[],hubs=[],files=[],exts=[],imports=[],dew=[],spokes=[];
+  let focusG=null,hover=null;
+  const cam={x:0,y:0,s:1,tx:0,ty:0,ts:1};
+  const mouse2={x:-9999,y:-9999};
+
+  function rs2(){
+    const r=cv.getBoundingClientRect(); CW=r.width;CH=r.height;
+    cv.width=CW*DPR2;cv.height=CH*DPR2; g2.setTransform(DPR2,0,0,DPR2,0,0);
+    FIT=Math.min(CW,CH)/1080;
+    if(focusG===null){cam.ts=FIT;cam.tx=0;cam.ty=0;}
+  }
+  addEventListener("resize",rs2);
+
+  function build(data){
+    nodes=[];hubs=[];files=[];exts=[];imports=[];spokes=[];dew=[];
+    const total=data.groups.reduce((a,g)=>a+g.files.length,0)||1;
+    const GAP=.14;
+    let ang=-Math.PI/2;
+    const byId={};
+    const center={id:"center",label:"mefai-signal-agent",kind:"center",ang:0,rad:0,crad:0,ph:0};
+    nodes.push(center);byId[center.id]=center;
+    data.groups.forEach((grp,gi)=>{
+      const span=(Math.PI*2-GAP*data.groups.length)*(grp.files.length/total);
+      const a0=ang+GAP/2;
+      const hub={id:"g:"+grp.name,label:grp.name,kind:"hub",g:gi,
+        ang:a0+span/2,rad:R_HUB,crad:R_HUB,ph:Math.random()*7};
+      nodes.push(hub);hubs.push(hub);byId[hub.id]=hub;
+      grp.files.forEach((fn,fi)=>{
+        const fa=grp.files.length>1?a0+span*fi/(grp.files.length-1):a0+span/2;
+        const nd={id:grp.name+"/"+fn,label:fn,kind:"file",g:gi,
+          ang:fa,rad:R_FILE,crad:R_FILE,ph:Math.random()*7};
+        nodes.push(nd);files.push(nd);byId[nd.id]=nd;
+        spokes.push(fa);
+      });
+      ang=a0+span+GAP/2;
+    });
+    /* normalize ids like "root/LICENSE" vs data ids */
+    const norm=s=>byId[s]||byId[s.replace(/^root\//,"root/")]||null;
+    (data.imports||[]).concat(EXTRA).forEach(([a,b])=>{
+      const A=byId[a]||byId["root/"+a], B=byId[b]||byId["root/"+b];
+      if(A&&B)imports.push({a:A,b:B,ph:Math.random()});
+    });
+    EXT.forEach(([label,src],i)=>{
+      const S=byId[src]; if(!S)return;
+      const taken=exts.filter(e=>Math.abs(e.ang-S.ang)<.01).length;
+      const nd={id:"x:"+label,label,kind:"ext",ang:S.ang+(taken? (taken%2?1:-1)*.16*Math.ceil(taken/2):0),
+        rad:R_EXT,crad:R_EXT,ph:Math.random()*7,src:S};
+      nodes.push(nd);exts.push(nd);
+    });
+    for(let i=0;i<46;i++)dew.push({r:RINGS[(Math.random()*RINGS.length)|0],
+      a:Math.random()*Math.PI*2,ph:Math.random()*7});
+    rs2();
+  }
+  build(CODEMAP);
+  fetch("codemap.json").then(r=>r.ok?r.json():null).then(j=>{if(j&&j.groups)build(j);}).catch(()=>{});
+
+  /* world <-> screen */
+  const sx=wx=>(wx-cam.x)*cam.s+CW/2, sy=wy=>(wy-cam.y)*cam.s+CH/2;
+  const wx=px=>(px-CW/2)/cam.s+cam.x, wy=py=>(py-CH/2)/cam.s+cam.y;
+
+  function pos(nd,t){
+    const br=RM?0:Math.sin(t*.0005+nd.ph)*3;
+    const ba=RM?0:Math.sin(t*.0004+nd.ph*1.7)*.006;
+    const r=nd.crad+br, a=nd.ang+ba;
+    let x=Math.cos(a)*r, y=Math.sin(a)*r;
+    /* silk gives near the cursor */
+    const mxw=wx(mouse2.x), myw=wy(mouse2.y);
+    const d=Math.hypot(mxw-x,myw-y);
+    if(d<170&&d>1){const k=(1-d/170)*9;x+=(mxw-x)/d*k;y+=(myw-y)/d*k;}
+    return [x,y];
+  }
+
+  cv.addEventListener("mousemove",e=>{
+    const r=cv.getBoundingClientRect();
+    mouse2.x=e.clientX-r.left;mouse2.y=e.clientY-r.top;
+  },{passive:true});
+  cv.addEventListener("mouseleave",()=>{mouse2.x=-9999;mouse2.y=-9999;hover=null;});
+
+  function nearest(px,py,t){
+    const mx=wx(px),my=wy(py);let best=null,bd=52/cam.s;
+    for(const nd of nodes){
+      const[x,y]=pos(nd,t);
+      const d=Math.hypot(mx-x,my-y);
+      if(d<bd){bd=d;best=nd;}
+    }
+    return best;
+  }
+
+  function setFocus(gi){
+    focusG=gi;
+    const hud=document.getElementById("webfocus");
+    if(gi===null){
+      cam.tx=0;cam.ty=0;cam.ts=FIT;
+      if(hud)hud.textContent="the agent, mapped file by file";
+      files.forEach(f=>f.tr=R_FILE);
+    }else{
+      const mem=files.filter(f=>f.g===gi);
+      files.forEach(f=>f.tr=(f.g===gi?R_FILE*FOCUS_GROW:R_FILE));
+      const hub=hubs[gi];
+      let cxm=Math.cos(hub.ang)*R_HUB,cym=Math.sin(hub.ang)*R_HUB;
+      mem.forEach(f=>{cxm+=Math.cos(f.ang)*R_FILE*FOCUS_GROW;cym+=Math.sin(f.ang)*R_FILE*FOCUS_GROW;});
+      cam.tx=cxm/(mem.length+1);cam.ty=cym/(mem.length+1);
+      cam.ts=FIT*2.35;
+      if(hud)hud.textContent=hub.label+" · "+mem.length+" files";
+    }
+  }
+
+  cv.addEventListener("click",e=>{
+    const r=cv.getBoundingClientRect();
+    const nd=nearest(e.clientX-r.left,e.clientY-r.top,performance.now());
+    if(nd&&(nd.kind==="hub"||nd.kind==="file")){
+      setFocus(focusG===nd.g?null:nd.g);
+    }else setFocus(null);
+  });
+
+  function thread(x1,y1,x2,y2,sag){
+    const mx=(x1+x2)/2*(1-sag),my=(y1+y2)/2*(1-sag);
+    g2.beginPath();g2.moveTo(sx(x1),sy(y1));
+    g2.quadraticCurveTo(sx(mx),sy(my),sx(x2),sy(y2));g2.stroke();
+  }
+
+  function draw(t){
+    g2.clearRect(0,0,CW,CH);
+    const L=RM?1:cam.s/FIT, lerp=RM?1:.07;
+    cam.x+=(cam.tx-cam.x)*lerp;cam.y+=(cam.ty-cam.y)*lerp;cam.s+=(cam.ts-cam.s)*lerp;
+    files.forEach(f=>{f.tr=f.tr||R_FILE;f.crad+=(f.tr-f.crad)*(RM?1:.09);});
+    const dimOther=focusG!==null;
+
+    /* anchor threads out of frame */
+    g2.strokeStyle="rgba(240,185,11,.10)";g2.lineWidth=1;
+    [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4].forEach(a=>{
+      thread(Math.cos(a)*R_RIM,Math.sin(a)*R_RIM,Math.cos(a)*1500,Math.sin(a)*1500,0);
+    });
+
+    /* rings: sagging silk between consecutive spokes */
+    const sp=[...spokes].sort((a,b)=>a-b);
+    RINGS.forEach((R,ri)=>{
+      const wob=RM?0:Math.sin(t*.0004+ri)*2;
+      g2.strokeStyle="rgba(240,185,11,"+(.10+ri*.008)+")";g2.lineWidth=1;
+      for(let i=0;i<sp.length;i++){
+        const a1=sp[i],a2=sp[(i+1)%sp.length]+(i===sp.length-1?Math.PI*2:0);
+        const x1=Math.cos(a1)*(R+wob),y1=Math.sin(a1)*(R+wob);
+        const x2=Math.cos(a2)*(R+wob),y2=Math.sin(a2)*(R+wob);
+        const am=(a1+a2)/2,Rm=(R+wob)*.965;
+        g2.beginPath();g2.moveTo(sx(x1),sy(y1));
+        g2.quadraticCurveTo(sx(Math.cos(am)*Rm),sy(Math.sin(am)*Rm),sx(x2),sy(y2));g2.stroke();
+      }
+    });
+
+    /* spokes */
+    g2.strokeStyle="rgba(240,185,11,.13)";g2.lineWidth=1;
+    sp.forEach(a=>{
+      g2.beginPath();g2.moveTo(sx(0),sy(0));
+      g2.lineTo(sx(Math.cos(a)*R_RIM),sy(Math.sin(a)*R_RIM));g2.stroke();
+    });
+
+    /* containment: hub -> files, center -> hubs */
+    hubs.forEach(h=>{
+      const[hx,hy]=pos(h,t);
+      const faded=dimOther&&h.g!==focusG;
+      g2.strokeStyle="rgba(252,213,53,"+(faded?.06:.22)+")";g2.lineWidth=1;
+      thread(0,0,hx,hy,.06);
+      files.filter(f=>f.g===h.g).forEach(f=>{
+        const[fx,fy]=pos(f,t);
+        g2.strokeStyle="rgba(252,213,53,"+(faded?.05:.16)+")";
+        thread(hx,hy,fx,fy,.04);
+      });
+    });
+
+    /* import threads + traveling light */
+    imports.forEach((lk,i)=>{
+      const[x1,y1]=pos(lk.a,t),[x2,y2]=pos(lk.b,t);
+      const faded=dimOther&&lk.a.g!==focusG&&lk.b.g!==focusG;
+      const mx=(x1+x2)/2*.55,my=(y1+y2)/2*.55;
+      g2.strokeStyle="rgba(252,213,53,"+(faded?.08:.4)+")";g2.lineWidth=faded?1:1.3;
+      g2.beginPath();g2.moveTo(sx(x1),sy(y1));
+      g2.quadraticCurveTo(sx(mx),sy(my),sx(x2),sy(y2));g2.stroke();
+      if(!RM&&!faded){
+        const p=((t*.00013)+lk.ph)%1,q=1-p;
+        const bx=q*q*x1+2*q*p*mx+p*p*x2,by=q*q*y1+2*q*p*my+p*p*y2;
+        const rg=g2.createRadialGradient(sx(bx),sy(by),0,sx(bx),sy(by),8);
+        rg.addColorStop(0,"rgba(252,213,53,.85)");rg.addColorStop(1,"rgba(252,213,53,0)");
+        g2.fillStyle=rg;g2.beginPath();g2.arc(sx(bx),sy(by),8,0,7);g2.fill();
+      }
+    });
+
+    /* external anchors */
+    exts.forEach(x=>{
+      const[ex,ey]=pos(x,t),[sxr,syr]=pos(x.src,t);
+      g2.strokeStyle="rgba(240,185,11,.18)";g2.lineWidth=1;
+      thread(sxr,syr,ex,ey,-.03);
+      g2.save();g2.translate(sx(ex),sy(ey));g2.rotate(Math.PI/4);
+      g2.fillStyle="rgba(240,185,11,.85)";g2.fillRect(-3,-3,6,6);g2.restore();
+      g2.font="600 10px IBM Plex Mono,monospace";g2.textAlign=x.ang>-Math.PI/2&&x.ang<Math.PI/2?"left":"right";
+      g2.fillStyle="rgba(240,185,11,.7)";
+      g2.fillText(x.label,sx(ex)+(g2.textAlign==="left"?9:-9),sy(ey)+3);
+    });
+
+    /* dew drops twinkle on the silk */
+    if(!RM)dew.forEach(d=>{
+      const tw=.25+.55*Math.abs(Math.sin(t*.0012+d.ph));
+      g2.fillStyle="rgba(255,244,200,"+tw*.5+")";
+      g2.beginPath();g2.arc(sx(Math.cos(d.a)*d.r),sy(Math.sin(d.a)*d.r),1.1,0,7);g2.fill();
+    });
+
+    /* nodes */
+    hover=mouse2.x>-999?nearest(mouse2.x,mouse2.y,t):null;
+    files.forEach(f=>{
+      const[x,y]=pos(f,t);
+      const mine=focusG===f.g,faded=dimOther&&!mine;
+      const isH=hover===f;
+      g2.fillStyle=isH?"#FCD535":"rgba(252,213,53,"+(faded?.25:.75)+")";
+      g2.beginPath();g2.arc(sx(x),sy(y),isH?4.4:(mine?3.6:2.7),0,7);g2.fill();
+      const showLabel=isH||mine||cam.s/FIT>1.7;
+      if(showLabel&&!faded){
+        g2.font=(isH?"600 12px":"500 10.5px")+" IBM Plex Mono,monospace";
+        g2.textAlign=x>=0?"left":"right";
+        g2.fillStyle=isH?"#FCD535":"rgba(234,236,239,.72)";
+        g2.fillText(f.label,sx(x)+(x>=0?8:-8),sy(y)+4);
+      }
+    });
+    hubs.forEach(h=>{
+      const[x,y]=pos(h,t);
+      const faded=dimOther&&h.g!==focusG,isH=hover===h;
+      const rg=g2.createRadialGradient(sx(x),sy(y),0,sx(x),sy(y),16);
+      rg.addColorStop(0,"rgba(240,185,11,"+(faded?.15:.5)+")");rg.addColorStop(1,"rgba(240,185,11,0)");
+      g2.fillStyle=rg;g2.beginPath();g2.arc(sx(x),sy(y),16,0,7);g2.fill();
+      g2.fillStyle=faded?"rgba(240,185,11,.4)":"#F0B90B";
+      g2.beginPath();g2.arc(sx(x),sy(y),isH?7:5.5,0,7);g2.fill();
+      g2.font="600 12px IBM Plex Mono,monospace";g2.textAlign="center";
+      g2.fillStyle=faded?"rgba(234,236,239,.35)":"#EAECEF";
+      g2.fillText(h.label,sx(x),sy(y)-14);
+    });
+    /* center: the agent */
+    const cxs=sx(0),cys=sy(0);
+    const crg=g2.createRadialGradient(cxs,cys,0,cxs,cys,34);
+    crg.addColorStop(0,"rgba(240,185,11,.35)");crg.addColorStop(1,"rgba(240,185,11,0)");
+    g2.fillStyle=crg;g2.beginPath();g2.arc(cxs,cys,34,0,7);g2.fill();
+    g2.strokeStyle="rgba(240,185,11,.8)";g2.lineWidth=1;
+    g2.beginPath();g2.arc(cxs,cys,20,0,7);g2.stroke();
+    if(LOGO.complete&&LOGO.naturalWidth)g2.drawImage(LOGO,cxs-14,cys-14,28,28);
+    cv.style.cursor=hover?"pointer":"default";
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
 </script>
 </body>
 </html>
