@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MEFAI Signal Agent · Autonomous trading signals on BNB Chain</title>
+<meta name="description" content="An open-source, self-hosted AI agent on BNB Chain that delivers MEFAI's live crypto trading signals. ERC-8004 identity, ERC-8183 jobs, x402 self-funding, BNB-native LLM." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ffffff; --paper-warm:#f7f4ec; --paper-soft:#faf8f2;
+    --ink:#000000; --body:#5c5c5c; --mut:#8c8c8c;
+    --gold:#a8873a; --gold-deep:#8f7330; --gold-2:#c9a961; --gold-pale:#f0e8d3;
+    --line:#e5e5e5; --line-warm:#e8e4dc;
+    --long:#1d7a4f; --short:#b13245;
+    --serif:"Playfair Display",Georgia,serif;
+    --sans:Montserrat,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:Consolas,monaco,"SF Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);color:var(--body);font-family:var(--sans);
+    font-size:16px;line-height:1.7;letter-spacing:.02em;
+    overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  #bg{position:fixed;inset:0;z-index:0;opacity:.5;pointer-events:none}
+  .wrap{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 24px}
+  .mono{font-family:var(--mono)}
+  .gold{color:var(--gold)}
+
+  /* ---------- ornaments ---------- */
+  .rule{display:flex;align-items:center;gap:14px;justify-content:center;margin:26px auto 0;max-width:260px}
+  .rule::before,.rule::after{content:"";flex:1;height:1px;background:var(--gold-2)}
+  .rule i{width:7px;height:7px;background:var(--gold);transform:rotate(45deg);display:block}
+
+  /* ---------- top bar ---------- */
+  header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .logo{width:38px;height:38px;border:1px solid var(--gold);display:grid;place-items:center;
+    font-family:var(--serif);font-size:19px;color:var(--gold);background:var(--paper)}
+  .brand .t{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--ink)}
+  .brand .t small{display:block;font-weight:400;font-size:10px;letter-spacing:.34em;color:var(--gold);margin-top:1px}
+  .nav .links{display:flex;gap:34px;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--body)}
+  .nav .links a{padding:4px 0;border-bottom:1px solid transparent;transition:.25s}
+  .nav .links a:hover{color:var(--gold);border-bottom-color:var(--gold)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    padding:14px 30px;font-size:11.5px;font-weight:600;letter-spacing:.24em;
+    text-transform:uppercase;cursor:pointer;transition:.28s;border:1px solid transparent}
+  .btn.primary{background:var(--gold);color:#fff}
+  .btn.primary:hover{background:var(--gold-deep)}
+  .btn.ghost{border-color:var(--ink);color:var(--ink);background:transparent}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+  @media(max-width:760px){.nav .links{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:104px 0 72px;text-align:center}
+  .chip{display:inline-flex;align-items:center;gap:10px;padding:9px 22px;
+    border:1px solid var(--gold-2);background:var(--paper-soft);font-size:10.5px;
+    letter-spacing:.3em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin-bottom:34px}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--long);
+    box-shadow:0 0 0 0 rgba(29,122,79,.5);animation:pulse 1.9s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(29,122,79,.45)}70%{box-shadow:0 0 0 9px rgba(29,122,79,0)}100%{box-shadow:0 0 0 0 rgba(29,122,79,0)}}
+  h1{font-family:var(--serif);font-weight:500;color:var(--ink);
+    font-size:clamp(40px,6.4vw,76px);line-height:1.12;letter-spacing:.01em}
+  h1 .l2{display:block;font-style:italic;font-weight:400;color:var(--gold)}
+  .sub{max-width:640px;margin:30px auto 0;font-size:clamp(15px,2vw,17.5px);color:var(--body)}
+  .sub b{color:var(--ink);font-weight:600}
+  .cta{display:flex;gap:18px;justify-content:center;margin-top:44px;flex-wrap:wrap}
+  .heroStats{display:flex;gap:0;justify-content:center;margin:64px auto 0;max-width:900px;
+    border:1px solid var(--line-warm);background:var(--paper);flex-wrap:wrap}
+  .stat{flex:1;min-width:170px;padding:28px 20px;border-right:1px solid var(--line-warm);text-align:center}
+  .stat:last-child{border-right:none}
+  @media(max-width:760px){.stat{min-width:50%;border-bottom:1px solid var(--line-warm)}}
+  .stat .n{font-family:var(--serif);font-size:34px;font-weight:500;color:var(--ink)}
+  .stat .n.gold{color:var(--gold)}
+  .stat .k{font-size:10px;color:var(--mut);margin-top:6px;letter-spacing:.26em;text-transform:uppercase}
+
+  /* ---------- section shell ---------- */
+  section{padding:78px 0;position:relative}
+  .eyebrow{font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);
+    font-weight:600;margin-bottom:16px}
+  .h2{font-family:var(--serif);font-size:clamp(28px,3.8vw,44px);font-weight:500;color:var(--ink);line-height:1.2}
+  .lead{color:var(--body);max-width:600px;margin-top:16px;font-size:15.5px}
+  .center{text-align:center}
+  .center .lead{margin-left:auto;margin-right:auto}
+  .reveal{opacity:0;transform:translateY(22px);transition:.75s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- identity card ---------- */
+  .idcard{margin-top:48px;border:1px solid var(--gold-2);padding:8px;background:var(--paper)}
+  .idcard .inner{border:1px solid var(--line-warm);padding:34px 36px;
+    display:grid;grid-template-columns:1.35fr 1fr;gap:34px;background:var(--paper)}
+  @media(max-width:760px){.idcard .inner{grid-template-columns:1fr;padding:24px}}
+  .idrow{display:flex;justify-content:space-between;align-items:center;gap:16px;
+    padding:13px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .idrow:last-child{border-bottom:none}
+  .idrow .k{color:var(--mut);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase}
+  .idrow .v{font-family:var(--mono);color:var(--ink);font-size:13px;text-align:right;word-break:break-all}
+  .badge{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;
+    font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+    background:#eaf4ee;color:var(--long)}
+  .badge.blue{background:var(--gold-pale);color:var(--gold-deep)}
+  .medal{display:grid;place-items:center;gap:18px;border-left:1px solid var(--line-warm);padding-left:34px}
+  @media(max-width:760px){.medal{border-left:none;border-top:1px solid var(--line-warm);padding-left:0;padding-top:24px}}
+  .avatar{width:104px;height:104px;border-radius:50%;border:1px solid var(--gold);
+    display:grid;place-items:center;position:relative;background:var(--paper)}
+  .avatar::after{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid var(--gold-pale)}
+  .avatar span{font-family:var(--serif);font-size:38px;color:var(--gold);font-style:italic}
+  .price .p1{font-size:10px;color:var(--mut);letter-spacing:.26em;text-transform:uppercase;text-align:center}
+  .price .p2{font-family:var(--serif);font-size:30px;color:var(--gold);text-align:center;margin-top:4px}
+  .price .p3{font-size:10px;color:var(--mut);letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-top:4px}
+
+  /* ---------- flow ---------- */
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:52px;border:1px solid var(--line-warm)}
+  @media(max-width:900px){.flow{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.flow{grid-template-columns:1fr}}
+  .step{padding:34px 26px;border-right:1px solid var(--line-warm);background:var(--paper);transition:.3s}
+  .step:last-child{border-right:none}
+  @media(max-width:900px){.step{border-bottom:1px solid var(--line-warm)}}
+  .step:hover{background:var(--paper-soft)}
+  .step .num{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--gold)}
+  .step .sk{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);margin-top:2px}
+  .step h3{font-family:var(--serif);font-weight:500;margin-top:14px;font-size:19px;color:var(--ink)}
+  .step p{margin-top:10px;font-size:13.5px;color:var(--body);line-height:1.65}
+  .step .tag{margin-top:16px;display:inline-block;font-family:var(--mono);font-size:11px;
+    color:var(--gold-deep);background:var(--paper-warm);padding:5px 10px}
+
+  /* ---------- live signals ---------- */
+  .liveHead{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .liveDot{display:inline-flex;align-items:center;gap:9px;font-size:10.5px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+  .liveDot i{width:8px;height:8px;border-radius:50%;background:var(--long);display:inline-block;
+    animation:pulse 1.9s infinite}
+  .ticker{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    margin-top:34px;background:var(--paper-soft)}
+  .ticker .track{display:flex;gap:44px;padding:14px 0;width:max-content;animation:scroll 46s linear infinite}
+  .ticker:hover .track{animation-play-state:paused}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+  .tk{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;white-space:nowrap}
+  .tk .s{color:var(--ink);font-weight:600}.tk .p{color:var(--mut)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .sig{padding:22px;border:1px solid var(--line);position:relative;background:var(--paper);transition:.3s}
+  .sig:hover{border-color:var(--gold-2);box-shadow:0 10px 30px rgba(168,135,58,.08)}
+  .sig .top{display:flex;align-items:center;justify-content:space-between}
+  .sig .sym{font-weight:600;font-size:14px;letter-spacing:.06em;color:var(--ink)}
+  .sig .tf{font-family:var(--mono);font-size:10px;color:var(--mut);border:1px solid var(--line);padding:2px 8px}
+  .sig .side{margin-top:16px;font-weight:600;font-size:17px;font-family:var(--sans);
+    letter-spacing:.12em;display:flex;align-items:center;gap:9px}
+  .sig .side.LONG{color:var(--long)} .sig .side.SHORT{color:var(--short)}
+  .sig .arrow{font-size:13px}
+  .sig .px{margin-top:8px;font-family:var(--mono);font-size:12.5px;color:var(--body)}
+  .sig .age{margin-top:12px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+  .sig .bar{position:absolute;left:0;top:0;bottom:0;width:2px}
+  .sig .bar.LONG{background:var(--long)} .sig .bar.SHORT{background:var(--short)}
+
+  /* ---------- deliverable ---------- */
+  .deliv{margin-top:44px;border:1px solid var(--line-warm);background:var(--paper-warm);
+    font-family:var(--mono);font-size:13px}
+  .deliv .bar{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line-warm);
+    background:var(--paper-soft)}
+  .deliv .bar em{font-family:var(--sans);font-style:normal;font-size:10px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--mut)}
+  .deliv .bar i{width:8px;height:8px;border-radius:50%;background:var(--gold-2);display:inline-block}
+  .deliv .body{padding:26px 28px;overflow-x:auto;background:var(--paper-warm)}
+  .deliv table{border-collapse:collapse;width:100%;min-width:460px}
+  .deliv th,.deliv td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line-warm);color:var(--body)}
+  .deliv th{color:var(--gold-deep);font-family:var(--sans);font-size:10px;font-weight:600;
+    letter-spacing:.24em;text-transform:uppercase}
+  .deliv .prompt{color:var(--mut);margin-bottom:16px}
+  .deliv .prompt b{color:var(--body)}
+  .deliv .sumline{margin-top:18px;color:var(--body);white-space:normal;line-height:1.7;font-family:var(--sans);font-size:13.5px}
+
+  /* ---------- stack ---------- */
+  .stack{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:52px;border:1px solid var(--line-warm)}
+  @media(max-width:760px){.stack{grid-template-columns:1fr}}
+  .tech{padding:30px 28px;border-right:1px solid var(--line-warm);border-bottom:1px solid var(--line-warm);
+    background:var(--paper);transition:.3s}
+  .tech:nth-child(3n){border-right:none}
+  @media(max-width:760px){.tech{border-right:none}}
+  .tech:hover{background:var(--paper-soft)}
+  .tech h4{font-family:var(--serif);font-weight:500;font-size:18px;color:var(--ink);
+    display:flex;align-items:center;gap:12px}
+  .tech h4 .ic{width:36px;height:36px;border:1px solid var(--gold-2);display:grid;place-items:center;
+    color:var(--gold);font-size:15px;background:var(--paper)}
+  .tech p{margin-top:12px;font-size:13.5px;color:var(--body);line-height:1.7}
+  .bnbnative{margin-top:52px;border:1px solid var(--gold-2);padding:8px}
+  .bnbnative .in{border:1px solid var(--line-warm);padding:30px 32px;text-align:center;background:var(--paper-soft)}
+  .bnbnative b{color:var(--gold-deep)}
+
+  /* ---------- open source ---------- */
+  .os{border:1px solid var(--gold-2);padding:8px;margin-top:10px}
+  .os .in{border:1px solid var(--line-warm);padding:56px 34px;text-align:center;background:var(--paper)}
+
+  footer{border-top:1px solid var(--line);padding:52px 0 64px;color:var(--mut);font-size:12px;text-align:center}
+  footer .fb{display:flex;justify-content:center;margin-bottom:18px}
+  footer .disc{max-width:620px;margin:16px auto 0;font-size:11.5px;line-height:1.8;letter-spacing:.03em}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">M</span>
+      <span class="t">MEFAI<small>Signal Agent</small></span></div>
+    <nav class="links">
+      <a href="#how">Protocol</a>
+      <a href="#live">Live Signals</a>
+      <a href="#stack">Stack</a>
+      <a href="#opensource">Open Source</a>
+    </nav>
+    <a class="btn primary" href="https://github.com/mefai-dev/mefai-signal-agent">GitHub</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="wrap hero">
+  <div class="chip"><span class="dot"></span> Live on BNB Chain · ERC-8004 · ERC-8183 · x402</div>
+  <h1>Autonomous trading signals,<span class="l2">settled on BNB Chain.</span></h1>
+  <div class="rule"><i></i></div>
+  <p class="sub">The <b>MEFAI Signal Agent</b> is an open-source, self-hosted AI agent that sells
+    MEFAI's live crypto signals as verifiable on-chain jobs. Negotiate a signed quote, fund it with
+    <b class="gold">$U via x402</b>, and receive the signals as an on-chain deliverable. No API keys,
+    no middlemen, a BNB-native LLM doing the work.</p>
+  <div class="cta">
+    <a class="btn primary" href="#live">See It Live</a>
+    <a class="btn ghost" href="#how">The Protocol</a>
+  </div>
+  <div class="heroStats">
+    <div class="stat"><div class="n gold" data-count="16">16</div><div class="k">Signals Streamed</div></div>
+    <div class="stat"><div class="n" data-count="40">40</div><div class="k">Assets Covered</div></div>
+    <div class="stat"><div class="n">6</div><div class="k">Timeframes</div></div>
+    <div class="stat"><div class="n gold">0</div><div class="k">Closed-AI Deps</div></div>
+  </div>
+</div>
+
+<!-- IDENTITY -->
+<section id="identity"><div class="wrap">
+  <div class="center">
+    <div class="eyebrow reveal">On-Chain Identity</div>
+    <div class="h2 reveal">One agent. One key. One signer.</div>
+    <p class="lead reveal">The agent holds its own wallet and is the sole signer of every quote, delivery
+      and settlement. Its identity is registered under ERC-8004, discoverable and verifiable by anyone
+      on BNB Chain.</p>
+  </div>
+  <div class="idcard reveal"><div class="inner">
+    <div>
+      <div class="idrow"><span class="k">Agent</span><span class="v">MEFAI Signal Agent</span></div>
+      <div class="idrow"><span class="k">ERC-8004 ID</span><span class="v gold">#1692</span></div>
+      <div class="idrow"><span class="k">Signer</span><span class="v"><a href="https://testnet.bscscan.com/address/0xCe78F79112d9299fAB9eD8d29d9f98b620E9C2E1" style="border-bottom:1px solid var(--gold-pale)">0xCe78&hellip;C2E1</a></span></div>
+      <div class="idrow"><span class="k">Network</span><span class="v">BNB Smart Chain · Testnet</span></div>
+      <div class="idrow"><span class="k">Registry</span><span class="v"><span class="badge blue">eip155:97:0x8004&hellip;BD9e</span></span></div>
+      <div class="idrow"><span class="k">Payment</span><span class="v">ERC-8183 · x402 ($U)</span></div>
+      <div class="idrow"><span class="k">LLM</span><span class="v">Pieverse · BNB-native</span></div>
+      <div class="idrow"><span class="k">Status</span><span class="v"><span class="badge">Serving</span></span></div>
+    </div>
+    <div class="medal">
+      <div class="avatar"><span>M</span></div>
+      <div class="price">
+        <div class="p1">List Price</div>
+        <div class="p2">0.1 $U</div>
+        <div class="p3">Per Signal Deliverable</div>
+      </div>
+    </div>
+  </div></div>
+</div></section>
+
+<!-- HOW -->
+<section id="how"><div class="wrap">
+  <div class="center">
+    <div class="eyebrow reveal">The Protocol</div>
+    <div class="h2 reveal">Funded first. Then delivered.<br>Always verifiable.</div>
+    <p class="lead reveal">Every job runs the same ERC-8183 lifecycle. The agent never prices with the LLM
+      and never signs from a tool. Pricing is fixed, signing is deterministic code.</p>
+  </div>
+  <div class="flow reveal">
+    <div class="step"><div class="num">01</div><div class="sk">Negotiate</div><h3>Signed quote</h3>
+      <p>Buyer asks for signals. The agent reads its fixed list price, clamps it, and signs the offer with EIP-191.</p>
+      <div class="tag">provider_sig · negotiation_hash</div></div>
+    <div class="step"><div class="num">02</div><div class="sk">Fund</div><h3>x402 escrow</h3>
+      <p>Buyer anchors the quote on-chain and funds the job in $U. Self-funding, no API key anywhere.</p>
+      <div class="tag">createJob · fund</div></div>
+    <div class="step"><div class="num">03</div><div class="sk">Deliver</div><h3>LLM does the work</h3>
+      <p>The agent verifies the funded job, then a BNB-native LLM pulls MEFAI's live signals and writes the deliverable.</p>
+      <div class="tag">mefai_latest_signals()</div></div>
+    <div class="step"><div class="num">04</div><div class="sk">Verify</div><h3>On-chain result</h3>
+      <p>The agent signs submit and the buyer reads the deliverable straight from the chain.</p>
+      <div class="tag">SUBMITTED · get_deliverable_url</div></div>
+  </div>
+</div></section>
+
+<!-- LIVE -->
+<section id="live"><div class="wrap">
+  <div class="liveHead">
+    <div>
+      <div class="eyebrow reveal">Real MEFAI Feed</div>
+      <div class="h2 reveal">Live signals the agent delivers</div>
+    </div>
+    <div class="liveDot reveal"><i></i> Streaming from MEFAI · <span id="upd">updating</span></div>
+  </div>
+  <div class="ticker reveal"><div class="track" id="track"></div></div>
+  <div class="grid" id="siggrid"></div>
+</div></section>
+
+<!-- DELIVERABLE -->
+<section id="deliverable"><div class="wrap">
+  <div class="center">
+    <div class="eyebrow reveal">A Real Job Output</div>
+    <div class="h2 reveal">What a buyer receives</div>
+    <p class="lead reveal">An actual deliverable produced by the agent's BNB-native LLM from live MEFAI
+      signals. No template, no hand-editing.</p>
+  </div>
+  <div class="deliv reveal">
+    <div class="bar"><i></i><i style="opacity:.55"></i><i style="opacity:.3"></i>
+      <em>job #1042 · submitted · deliverable</em></div>
+    <div class="body">
+      <div class="prompt"><b>request:</b> "give me MEFAI current signals for BTC and ETH across timeframes, with side, entry price and time"</div>
+      <table>
+        <tr><th>Symbol</th><th>TF</th><th>Side</th><th>Entry</th></tr>
+        <tr><td>BTCUSDT.P</td><td>1m</td><td style="color:var(--short)">SHORT</td><td>62538.1</td></tr>
+        <tr><td>BTCUSDT.P</td><td>5m</td><td style="color:var(--short)">SHORT</td><td>62588.7</td></tr>
+        <tr><td>BTCUSDT.P</td><td>15m</td><td style="color:var(--long)">LONG</td><td>62345.9</td></tr>
+        <tr><td>ETHUSDT.P</td><td>1m</td><td style="color:var(--short)">SHORT</td><td>1780.1</td></tr>
+        <tr><td>ETHUSDT.P</td><td>15m</td><td style="color:var(--long)">LONG</td><td>1779.15</td></tr>
+        <tr><td>ETHUSDT.P</td><td>4h</td><td style="color:var(--short)">SHORT</td><td>1779.9</td></tr>
+      </table>
+      <div class="sumline"><b class="gold">Summary:</b> near-term bearish bias (1m, 5m, 4h) with longer-term
+        (15m, 30m) bullish signals, suggesting potential consolidation for both BTC and ETH.
+        <span style="color:var(--mut)">Source: MEFAI · informational only, not financial advice.</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- STACK -->
+<section id="stack"><div class="wrap">
+  <div class="center">
+    <div class="eyebrow reveal">Built Entirely on BNB Chain Rails</div>
+    <div class="h2 reveal">The stack</div>
+  </div>
+  <div class="stack reveal">
+    <div class="tech"><h4><span class="ic">&#9670;</span> BNB Smart Chain</h4><p>Identity, jobs, escrow and settlement all live on BSC. The agent's wallet is the single on-chain signer.</p></div>
+    <div class="tech"><h4><span class="ic">&#9672;</span> ERC-8004 Identity</h4><p>The agent registers a discoverable, verifiable on-chain identity. Buyers resolve it before they trust it.</p></div>
+    <div class="tech"><h4><span class="ic">&#9636;</span> ERC-8183 Jobs</h4><p>Negotiate, fund, deliver, settle. A signed quote becomes an escrowed job with an on-chain deliverable.</p></div>
+    <div class="tech"><h4><span class="ic">&#10176;</span> x402 Self-Funding</h4><p>Payments settle in $U over x402. The agent pays for what it needs on-chain, no API keys anywhere.</p></div>
+    <div class="tech"><h4><span class="ic">&#10022;</span> Pieverse LLM</h4><p>A BNB-native model does the reasoning. Zero-deposit, on-chain metered. The AI itself runs on BNB rails.</p></div>
+    <div class="tech"><h4><span class="ic">&#9678;</span> MEFAI Signals</h4><p>The value layer: MEFAI's live signal engine, 40 assets across 6 timeframes, is what the agent actually sells.</p></div>
+  </div>
+  <div class="bnbnative reveal"><div class="in">
+    <b>100% BNB-native, 100% open source.</b> No closed AI provider, no proprietary API keys.
+    Every layer of this agent, from the LLM to settlement, runs on BNB Chain infrastructure.
+  </div></div>
+</div></section>
+
+<!-- OPEN SOURCE -->
+<section id="opensource"><div class="wrap">
+  <div class="os reveal"><div class="in">
+    <div class="eyebrow">Open Source</div>
+    <div class="h2">Fork it. Run your own signal agent.</div>
+    <div class="rule"><i></i></div>
+    <p class="lead" style="margin:20px auto 0">The full agent, its identity, jobs, x402 flow, the MEFAI signal tools and the
+      self-host deploy, is open and MIT-licensed. Clone it, point it at your signal source, and deploy your own
+      seller agent on BNB Chain.</p>
+    <div class="cta" style="margin-top:34px">
+      <a class="btn primary" href="https://github.com/mefai-dev/mefai-signal-agent">Star on GitHub</a>
+      <a class="btn ghost" href="#how">Read the Protocol</a>
+    </div>
+  </div></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fb"><div class="brand"><span class="logo">M</span>
+    <span class="t" style="font-size:12px">MEFAI<small>Signal Agent</small></span></div></div>
+  <div class="disc">MEFAI signals are informational and do not constitute financial advice. On-chain figures shown
+    are from BNB Smart Chain testnet. The agent is the sole signer of its own wallet; all pricing is fixed and all
+    signing is deterministic. Built on BNB Chain · ERC-8004 · ERC-8183 · x402 · Pieverse.</div>
+</div></footer>
+
+<script>
+/* ---- real signal snapshot (embedded; replaced live by signals.json when available) ---- */
+const SEED = [
+  {symbol:"BTCUSDT.P",timeframe:"1m",side:"SHORT",price:62538.1,timestamp:1784015160},
+  {symbol:"ETHUSDT.P",timeframe:"1m",side:"SHORT",price:1780.1,timestamp:1784014800},
+  {symbol:"BNBUSDT.P",timeframe:"1m",side:"SHORT",price:570.05,timestamp:1784016361},
+  {symbol:"SOLUSDT.P",timeframe:"1m",side:"SHORT",price:75.04,timestamp:1784014981},
+  {symbol:"XRPUSDT.P",timeframe:"5m",side:"SHORT",price:1.0679,timestamp:1784015402},
+  {symbol:"DOGEUSDT.P",timeframe:"5m",side:"SHORT",price:0.07212,timestamp:1784015403},
+  {symbol:"ADAUSDT.P",timeframe:"5m",side:"SHORT",price:0.1586,timestamp:1784016003},
+  {symbol:"LINKUSDT.P",timeframe:"1m",side:"SHORT",price:7.922,timestamp:1784014863},
+  {symbol:"AVAXUSDT.P",timeframe:"1m",side:"SHORT",price:6.491,timestamp:1784014740},
+  {symbol:"SUIUSDT.P",timeframe:"1m",side:"SHORT",price:0.7309,timestamp:1784014562},
+  {symbol:"TAOUSDT.P",timeframe:"1m",side:"SHORT",price:198.87,timestamp:1784014322},
+  {symbol:"RENDERUSDT.P",timeframe:"30m",side:"LONG",price:1.493,timestamp:1784016003},
+  {symbol:"LDOUSDT.P",timeframe:"4h",side:"LONG",price:0.3255,timestamp:1784016002},
+  {symbol:"1000PEPEUSDT.P",timeframe:"4h",side:"SHORT",price:0.0027401,timestamp:1784016001},
+  {symbol:"HYPEUSDT.P",timeframe:"5m",side:"SHORT",price:63.52,timestamp:1784016000},
+  {symbol:"VIRTUALUSDT.P",timeframe:"4h",side:"SHORT",price:0.5509,timestamp:1784016001}
+];
+
+const base = s => s.symbol.replace("USDT.P","").replace(".P","");
+const fmtPx = p => { p=+p; return p>=100?p.toLocaleString(undefined,{maximumFractionDigits:2}):p>=1?p.toFixed(3):p.toPrecision(4); };
+function ago(ts){ const d=Math.max(0,Math.floor(Date.now()/1000)-(+ts)); if(d<60)return d+"s ago"; if(d<3600)return Math.floor(d/60)+"m ago"; if(d<86400)return Math.floor(d/3600)+"h ago"; return Math.floor(d/86400)+"d ago"; }
+
+function renderGrid(list){
+  const g=document.getElementById("siggrid"); g.innerHTML="";
+  list.slice(0,16).forEach(s=>{
+    const el=document.createElement("div"); el.className="sig";
+    el.innerHTML=`<div class="bar ${s.side}"></div>
+      <div class="top"><span class="sym">${base(s)}</span><span class="tf">${s.timeframe}</span></div>
+      <div class="side ${s.side}"><span class="arrow">${s.side==="LONG"?"&#9650;":"&#9660;"}</span>${s.side}</div>
+      <div class="px">entry $${fmtPx(s.price)}</div>
+      <div class="age">${ago(s.timestamp)}</div>`;
+    g.appendChild(el);
+  });
+}
+function renderTicker(list){
+  const t=document.getElementById("track"); const one=list.map(s=>
+    `<span class="tk"><span class="s">${base(s)}</span><span style="color:${s.side==='LONG'?'var(--long)':'var(--short)'}">${s.side==='LONG'?'&#9650;':'&#9660;'} ${s.side}</span><span class="p">$${fmtPx(s.price)}</span></span>`
+  ).join("");
+  t.innerHTML=one+one;
+}
+function paint(list){ renderGrid(list); renderTicker(list); document.getElementById("upd").textContent="live"; }
+paint(SEED);
+
+/* live feed: the self-host writes signals.json on a short timer */
+async function pull(){
+  try{
+    const r=await fetch("signals.json",{cache:"no-store"});
+    if(r.ok){ const j=await r.json(); const arr=Array.isArray(j)?j:(j.signals||[]); if(arr.length){ paint(arr); } }
+  }catch(e){}
+}
+pull(); setInterval(pull,15000);
+setInterval(()=>renderGrid(window.__last||SEED),30000);
+const _p=paint; paint=l=>{window.__last=l;_p(l);}; window.__last=SEED;
+
+/* count-up */
+document.querySelectorAll("[data-count]").forEach(el=>{
+  const to=+el.dataset.count; let n=0; const step=Math.max(1,Math.round(to/40));
+  const t=setInterval(()=>{ n+=step; if(n>=to){n=to;clearInterval(t);} el.textContent=n; },26);
+});
+
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in")}),{threshold:.12});
+document.querySelectorAll(".reveal").forEach(e=>io.observe(e));
+
+/* ---- subtle constellation background ---- */
+const cv=document.getElementById("bg"), ctx=cv.getContext("2d");
+let W,H,N=[]; const COUNT=54;
+function rs(){ W=cv.width=innerWidth; H=cv.height=innerHeight; }
+rs(); addEventListener("resize",rs);
+for(let i=0;i<COUNT;i++)N.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22});
+function loop(){
+  ctx.clearRect(0,0,W,H);
+  for(const p of N){ p.x+=p.vx;p.y+=p.vy; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; }
+  for(let i=0;i<N.length;i++){
+    for(let j=i+1;j<N.length;j++){
+      const dx=N[i].x-N[j].x,dy=N[i].y-N[j].y,d=Math.hypot(dx,dy);
+      if(d<130){ ctx.strokeStyle="rgba(168,135,58,"+(.10*(1-d/130))+")"; ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(N[i].x,N[i].y);ctx.lineTo(N[j].x,N[j].y);ctx.stroke(); }
+    }
+  }
+  for(const p of N){ ctx.fillStyle="rgba(168,135,58,.4)"; ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,7);ctx.fill(); }
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
