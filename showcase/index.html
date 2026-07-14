@@ -37,7 +37,7 @@
   .gold{color:var(--gold)}
 
   /* ---------- stage ---------- */
-  #bg{position:fixed;inset:0;z-index:0;opacity:.5;pointer-events:none}
+  #bg{position:fixed;inset:0;z-index:0;opacity:.65;pointer-events:none}
   #webcv{position:fixed;inset:0;z-index:2}
   .vframe{position:fixed;inset:12px;z-index:40;pointer-events:none;border:1px solid rgba(240,185,11,.12)}
   .vframe::before,.vframe::after{content:"";position:absolute;width:22px;height:22px;border-color:rgba(240,185,11,.45);border-style:solid}
@@ -538,38 +538,54 @@ let W,H; const DPR=Math.min(2,devicePixelRatio||1);
 function rs(){ W=innerWidth;H=innerHeight; cv.width=W*DPR;cv.height=H*DPR;
   cv.style.width=W+"px";cv.style.height=H+"px"; ctx.setTransform(DPR,0,0,DPR,0,0); }
 rs(); addEventListener("resize",rs);
-const NC=innerWidth<700?36:70, N=[];
+const NC=innerWidth<700?70:150, N=[];
 for(let i=0;i<NC;i++)N.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
   vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:.8+Math.random()*1.3});
-const waves=[];
-addEventListener("click",e=>{ if(!openId&&waves.length<4)waves.push({x:e.clientX,y:e.clientY,r:0,a:.45}); },{passive:true});
-function drawPlexus(){
+/* click pulses: dots GATHER to the point, then SCATTER apart */
+const pulses=[];
+addEventListener("click",e=>{ if(!openId&&pulses.length<3)pulses.push({x:e.clientX,y:e.clientY,t0:performance.now()}); },{passive:true});
+const GATHER=560, SCATTER=1500, REACH2=360;
+function drawPlexus(now){
   for(const p of N){
     p.x+=p.vx;p.y+=p.vy;
     if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1;
-    for(const w of waves){
-      const wx=p.x-w.x,wy=p.y-w.y,wd=Math.hypot(wx,wy);
-      if(Math.abs(wd-w.r)<46&&wd>1){const push=(1-Math.abs(wd-w.r)/46)*2;
-        p.vx+=wx/wd*push*.12;p.vy+=wy/wd*push*.12;}
+    for(const w of pulses){
+      const age=now-w.t0;
+      const dx=w.x-p.x,dy=w.y-p.y,d=Math.hypot(dx,dy);
+      if(d<REACH2&&d>2){
+        const k=(1-d/REACH2);
+        if(age<GATHER){                    /* converge on the click */
+          const g=k*.34*(1-age/GATHER+.35);
+          p.vx+=dx/d*g;p.vy+=dy/d*g;
+        }else if(age<SCATTER){             /* burst apart */
+          const s=k*.5*(1-(age-GATHER)/(SCATTER-GATHER));
+          p.vx-=dx/d*s;p.vy-=dy/d*s;
+        }
+      }
     }
-    p.vx*=.995;p.vy*=.995;
-    const sp=Math.hypot(p.vx,p.vy); if(sp<.1){p.vx+=(Math.random()-.5)*.05;p.vy+=(Math.random()-.5)*.05;}
+    p.vx*=.985;p.vy*=.985;
+    const spd=Math.hypot(p.vx,p.vy);
+    if(spd>3.4){p.vx*=3.4/spd;p.vy*=3.4/spd;}
+    if(spd<.1){p.vx+=(Math.random()-.5)*.05;p.vy+=(Math.random()-.5)*.05;}
   }
   for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++){
     const dx=N[i].x-N[j].x,dy=N[i].y-N[j].y,d=Math.hypot(dx,dy);
-    if(d<140){ ctx.strokeStyle="rgba(240,185,11,"+(.1*(1-d/140))+")"; ctx.lineWidth=1;
+    if(d<130){ ctx.strokeStyle="rgba(240,185,11,"+(.11*(1-d/130))+")"; ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(N[i].x,N[i].y);ctx.lineTo(N[j].x,N[j].y);ctx.stroke(); }
   }
-  for(const p of N){ ctx.fillStyle="rgba(252,213,53,.4)"; ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill(); }
-  for(let i=waves.length-1;i>=0;i--){
-    const w=waves[i]; w.r+=9; w.a*=.965;
-    ctx.strokeStyle="rgba(240,185,11,"+w.a+")"; ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.arc(w.x,w.y,w.r,0,7);ctx.stroke();
-    if(w.a<.02||w.r>Math.max(W,H))waves.splice(i,1);
+  for(const p of N){ ctx.fillStyle="rgba(252,213,53,.42)"; ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill(); }
+  for(let i=pulses.length-1;i>=0;i--){
+    const w=pulses[i],age=now-w.t0;
+    if(age>SCATTER){pulses.splice(i,1);continue;}
+    const a=age<GATHER?.4*(age/GATHER):.4*(1-(age-GATHER)/(SCATTER-GATHER));
+    const rr=age<GATHER?46*(1-age/GATHER)+8:8+(age-GATHER)*.28;
+    const rg=ctx.createRadialGradient(w.x,w.y,0,w.x,w.y,rr+40);
+    rg.addColorStop(0,"rgba(252,213,53,"+a+")");rg.addColorStop(1,"rgba(252,213,53,0)");
+    ctx.fillStyle=rg;ctx.beginPath();ctx.arc(w.x,w.y,rr+40,0,7);ctx.fill();
   }
 }
-function bgLoop(){ ctx.clearRect(0,0,W,H); drawPlexus(); requestAnimationFrame(bgLoop); }
-if(!RM)requestAnimationFrame(bgLoop); else{ ctx.clearRect(0,0,W,H); drawPlexus(); }
+function bgLoop(t){ ctx.clearRect(0,0,W,H); drawPlexus(t||performance.now()); requestAnimationFrame(bgLoop); }
+if(!RM)requestAnimationFrame(bgLoop); else{ ctx.clearRect(0,0,W,H); drawPlexus(performance.now()); }
 
 /* ================= THE CODE WEB: the whole page ================= */
 (function(){
@@ -620,7 +636,7 @@ if(!RM)requestAnimationFrame(bgLoop); else{ ctx.clearRect(0,0,W,H); drawPlexus()
     cv2.width=CW*DPR2;cv2.height=CH*DPR2;
     cv2.style.width=CW+"px";cv2.style.height=CH+"px";
     g2.setTransform(DPR2,0,0,DPR2,0,0);
-    FIT=Math.min(CW,CH)/1310;
+    FIT=CW<700?Math.min(CW/760,CH/1120):Math.min(CW,CH)/1120;
     if(focusG===null&&!openId){cam.ts=FIT;cam.tx=0;cam.ty=0;if(cam.s===1)cam.s=FIT;}
   }
   addEventListener("resize",rs2);
@@ -686,6 +702,9 @@ if(!RM)requestAnimationFrame(bgLoop); else{ ctx.clearRect(0,0,W,H); drawPlexus()
   }
 
   addEventListener("mousemove",e=>{m2.x=e.clientX;m2.y=e.clientY;},{passive:true});
+  addEventListener("touchmove",e=>{const T=e.touches[0];if(T){m2.x=T.clientX;m2.y=T.clientY;}},{passive:true});
+  addEventListener("touchstart",e=>{const T=e.touches[0];if(T){m2.x=T.clientX;m2.y=T.clientY;}},{passive:true});
+  addEventListener("touchend",()=>{setTimeout(()=>{m2.x=-9999;m2.y=-9999;},400);},{passive:true});
 
   function nearest(px,py,t){
     const mx=iwx(px),my=iwy(py);let best=null,bd=Infinity;
@@ -872,9 +891,10 @@ if(!RM)requestAnimationFrame(bgLoop); else{ ctx.clearRect(0,0,W,H); drawPlexus()
       g2.fillStyle=orb;g2.beginPath();g2.arc(sx(x),sy(y),R,0,7);g2.fill();
       g2.strokeStyle="rgba(255,255,255,.35)";g2.lineWidth=1;
       g2.beginPath();g2.arc(sx(x),sy(y),R,0,7);g2.stroke();
-      g2.font="700 "+(isH?11:9)+"px IBM Plex Sans,sans-serif";g2.textAlign="center";
+      const SM=CW<700;
+      g2.font="700 "+(isH?(SM?10:11):(SM?8:9))+"px IBM Plex Sans,sans-serif";g2.textAlign="center";
       g2.fillStyle="#181A20";g2.fillText(s.glyph,sx(x),sy(y)+3.5);
-      g2.font="700 "+(isH?12.5:11)+"px IBM Plex Sans,sans-serif";
+      g2.font="700 "+(isH?(SM?11:12.5):(SM?9.5:11))+"px IBM Plex Sans,sans-serif";
       g2.fillStyle=isH?"#FCD535":"#EAECEF";
       g2.fillText(s.label,sx(x),sy(y)+R+16);
     });
